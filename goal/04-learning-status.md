@@ -7,9 +7,47 @@
 ---
 
 ## Current phase
-- **Phase:** P0 — Python core — **NOT STARTED YET**
-- **Last updated:** 2026-04-16
-- User will signal when they begin. Do not push P1+ topics until P0 is underway.
+- **Phase:** P0 — Python core — **starts Sat 2026-04-25**
+- **Last updated:** 2026-04-23
+
+---
+
+## Learning schedule (read this before planning work)
+
+| Day type | Activity | Output location |
+|----------|----------|-----------------|
+| **Weekdays (Mon–Fri)** | Attending external AI course. User revises/consolidates each topic into notes. | `week-one/`, `week-two/`, `week-three/`, … |
+| **Weekends (Sat + Sun)** | Python self-study — working through `learn-python/01..12_*.py` in order. | `learn-python/` + small practice scripts in `python-practice/YYYY-MM-DD/` |
+
+**Implications for planning:**
+- P0 is paced across **~3 weekends (6 days)**, not 7 consecutive days. Do NOT treat the roadmap's "Week 1" as a calendar week.
+- Conceptual AI topics (RAG, agents, function calling) arrive via the course, not this roadmap. The `week-N/` notes are where that lives — already ahead of where pure-code progress is.
+- When user says "status", check both tracks: course-revision track (`week-N/`) and Python-code track (`learn-python/`).
+
+### P0 weekend plan (first 3 weekends)
+
+| Weekend | Date | Files to cover | Focus |
+|---------|------|----------------|-------|
+| 1 | Sat 2026-04-25 | `01_basics.py`, `02_collections.py` | Vars, types, f-strings, list/tuple/set/dict |
+| 1 | Sun 2026-04-26 | `03_control_flow.py`, `04_functions.py` | if/for/while, comprehensions, *args/**kwargs, lambda |
+| 2 | Sat 2026-05-02 | `05_exceptions.py`, `06_file_io.py` | try/except/finally, `with` context manager |
+| 2 | Sun 2026-05-03 | `07_oop_basics.py`, `08_oop_inheritance.py` | classes, `__init__`, `super()`, dunder methods |
+| 3 | Sat 2026-05-09 | `09_dataclasses.py`, `10_async.py` | `@dataclass`, type hints, `async/await`, `asyncio.gather` |
+| 3 | Sun 2026-05-10 | `11_pydantic.py`, `12_decorators.py` | **Pydantic (critical for LLMs)**, decorators, generators |
+
+**End of Weekend 3 → P0 exit criteria check.** If passed, Weekend 4 begins P1 (FastAPI + httpx async + structlog).
+
+### Extras to add alongside the 12 files (15–30 min each)
+
+Not in the scaffolded files, but you will hit these in real AI code. Do them as you go:
+
+- **Generators (`yield`)** — LangChain streaming uses these heavily. Add to Weekend 3 alongside decorators.
+- **Context managers** (writing your own `__enter__` / `__exit__`) — Weekend 2 alongside file I/O.
+- **`pathlib.Path`** — modern file paths. 10 min on Weekend 2.
+- **`json` module** — load/dump JSON. Trivial coming from JS but do it once.
+- **`enum.Enum` + `typing.Literal`** — used everywhere for intent types. Weekend 3.
+- **`logging` basics** — before jumping to `structlog` in P1. Weekend 3.
+- **Jupyter notebook** — 15 min to run one cell. ML ecosystem uses this as the REPL.
 
 ---
 

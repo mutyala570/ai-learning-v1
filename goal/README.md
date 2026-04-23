@@ -9,10 +9,11 @@
 ## TL;DR current state
 
 - **Project:** Order & Logistics Support Agent for Qwipo B2B customers
-- **Phase:** **P0 — Python core learning — NOT STARTED YET**
+- **Phase:** **P0 — Python core learning — starts Sat 2026-04-25 (weekends only)**
 - **Agent build:** **M0 (planning done) — blocked on P0**
-- **Next action (user):** start Phase 1 of `AI_ENGINEER_ROADMAP.md`, then ping me
-- **Next action (me, when unblocked):** M1 skeleton (FastAPI + Groq echo endpoint)
+- **Learning schedule:** weekdays = external AI course + revision into `week-N/` folders; **weekends (Sat + Sun) = Python self-study** via `learn-python/`. Full plan in `04-learning-status.md`.
+- **Next action (user):** Sat 2026-04-25 — start with `learn-python/01_basics.py` and `02_collections.py`
+- **Next action (me, when P0 unblocks):** M1 skeleton (FastAPI + Groq echo endpoint)
 
 ---
 
