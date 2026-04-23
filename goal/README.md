@@ -58,6 +58,7 @@
 | "which milestones are done?" / "what's the next milestone?" | `03-status.md` |
 | "which topics have I studied?" / "update my learning progress" | `04-learning-status.md` |
 | "explain layer X" / "remind me what RAG does" | `05-layers-reference.md` |
+| "create md file" / "make learning notes" | `../doc-creation-guidelines.md` (project root) |
 | "what's my skill gap?" / "what do I need to learn?" | `my-req.md` |
 
 ---
