@@ -41,7 +41,7 @@ for fruit in ["apple", "banana", "mango"]:
 for i in range(5):              # 0 to 4
     print(f"i = {i}")
 
-for i in range(2, 10, 2):       # 2, 4, 6, 8
+for i in range(2, 15, 2):       # 2, 4, 6, 8
     print(f"even: {i}")
 
 # Enumerate — get index + value
@@ -88,5 +88,36 @@ print(f"Dict: {squared_dict}")
 
 # ---------------- TRY IT YOURSELF ----------------
 # 1. Print FizzBuzz for 1-20 (Fizz if div by 3, Buzz if div by 5, FizzBuzz if both)
+
+for num in range(1,20):
+    if num % 3== 0 and num % 5==0:
+        print("FizzBuzz")
+    elif num % 3==0:
+        print("Fizz")
+    elif num % 5==0:
+        print("Buzz")
+    else:
+        print(num)
+
 # 2. Using comprehension: get squares of only odd numbers from 1-10
+
+odd_squares = [n ** 2 for n in range(1,11) if n  % 2 !=0]
+print(f"Odd squares: {odd_squares}")
+
 # 3. Count vowels in a string using a loop
+
+
+
+string = "helloa"
+vowels = "aeiou"
+count = 0
+counts = sum(1 for char in string if char in vowels)
+
+print(f"Vowels in '{string}': {counts}")
+
+
+for char in string:
+    if char in vowels:
+        count += 1
+print(f"Vowels in '{string}': {count}")
+

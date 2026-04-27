@@ -58,3 +58,14 @@ print(f"Contains 'World': {'World' in combined}")
 # 1. Create a variable for your favorite language
 # 2. Calculate the area of a rectangle (length * width)
 # 3. Print your name 5 times using *
+print("=== Try It Yourself 1: variables ===")
+
+favorite_language="Telegu"
+length=10
+width=30
+area=length*width
+print(f"Favorite language: {favorite_language}")
+print(f"Area of rectangle: {area}")
+
+name="Mutyala"
+print(f"Name: {name * 5}")

@@ -68,6 +68,39 @@
 1. [**How Recursive Chunking Works**](#how-recursive-chunking-works)
 2. [**Recursive: Pros and Cons**](#recursive-pros-and-cons)
 
+### Slide 12 — Chunking Strategies: Naive Chunking vs Late Chunking
+1. [**The Core Difference in One Line**](#the-core-difference-in-one-line)
+2. [**Naive Chunking (i.i.d. Embeddings)**](#naive-chunking-iid-embeddings)
+3. [**Late Chunking (Conditional Embeddings)**](#late-chunking-conditional-embeddings)
+4. [**Why Late Chunking Beats Naive Chunking**](#why-late-chunking-beats-naive-chunking)
+5. [**Trade-Offs and When to Use Late Chunking**](#trade-offs-and-when-to-use-late-chunking)
+
+### Slide 13 — Query Pre-Processing: Modifying Queries to Improve Retrieval
+1. [**Why Query Pre-Processing Exists**](#why-query-pre-processing-exists)
+2. [**Query Classification**](#query-classification)
+3. [**Query Cleaning and Rewriting**](#query-cleaning-and-rewriting)
+4. [**Query Expansion**](#query-expansion)
+5. [**Policy and Safety Check**](#policy-and-safety-check)
+6. [**The Order of the Four Steps**](#the-order-of-the-four-steps)
+
+### Slide 14 — Choosing the Right Embedding Model in RAG
+1. [**Why This Choice Matters**](#why-this-choice-matters)
+2. [**Relevance**](#relevance)
+3. [**Domain Specificity**](#domain-specificity)
+4. [**Performance vs Cost**](#performance-vs-cost)
+5. [**Language Support**](#language-support)
+6. [**Hosting**](#hosting)
+7. [**How to Actually Pick One**](#how-to-actually-pick-one)
+
+### Slide 15 — Which Vector Database to Choose: Pinecone vs Chroma vs Qdrant
+1. [**Why the Choice Matters**](#why-the-choice-matters)
+2. [**The Three Options in One Line Each**](#the-three-options-in-one-line-each)
+3. [**Type: Who Hosts It**](#type-who-hosts-it)
+4. [**Scalability: How Big Can It Go**](#scalability-how-big-can-it-go)
+5. [**Ease of Use: How Fast Can You Start**](#ease-of-use-how-fast-can-you-start)
+6. [**Performance: Latency and Throughput**](#performance-latency-and-throughput)
+7. [**How to Actually Pick One**](#how-to-actually-pick-one-vector-db)
+
 ---
 
 # Slide 1 — Retrieval Augmented Generation (Overview)
@@ -533,3 +566,227 @@ In practice, libraries like LangChain's `RecursiveCharacterTextSplitter` impleme
 
 - **Advantage:** Retrieval accuracy goes up because chunks respect natural boundaries such as paragraphs and sentences instead of blindly cutting at a fixed token count. This is why recursive chunking is a common default in production RAG systems.
 - **Disadvantage:** Implementation and computational complexity. There are more moving parts than in fixed size chunking, and tuning the separator hierarchy and chunk size together takes some care.
+
+---
+
+# Slide 12 — Chunking Strategies: Naive Chunking vs Late Chunking
+
+Fixed size, semantic, and recursive chunking all differ in *where* they cut the document, but they share one assumption: the cuts happen **before** the text is embedded. This slide introduces a different axis of choice — *when* the cut happens relative to the embedding step. That choice separates **naive chunking** from **late chunking**.
+
+## The Core Difference in One Line
+
+> **Naive chunking = chunk first, then embed. Late chunking = embed first, then chunk.**
+
+That single swap changes how much context each chunk's vector actually carries, and it is the reason late chunking was introduced.
+
+## Naive Chunking (i.i.d. Embeddings)
+
+Naive chunking is the default pipeline used by fixed size, semantic, and recursive strategies. The flow is:
+
+1. Take the long document.
+2. Split it into **Chunk1, Chunk2, … ChunkN** using whichever chunking strategy is chosen.
+3. Send **each chunk independently** through the embedding model.
+4. Pool the token outputs inside that chunk into a single vector — the chunk embedding.
+5. Store each chunk embedding in the vector database.
+
+Because every chunk goes through the embedding model on its own, its vector is computed in complete isolation from the other chunks. The embedding model never sees the surrounding document. This property is called **i.i.d. embeddings** — independent and identically distributed. Chunk 5 has no idea what Chunk 4 said, and Chunk 4 has no idea what Chunk 6 will say.
+
+The problem this creates is a loss of context at chunk boundaries. Suppose Chunk 1 says *"Apple released a new phone last week."* and Chunk 2 says *"It has a better camera and longer battery life."* To a human the two chunks are clearly about the same phone, but the vector for Chunk 2 is computed with no knowledge of Chunk 1. The word *"It"* has nothing to anchor to. A query like *"Apple phone camera"* may match Chunk 1 but completely miss Chunk 2, even though Chunk 2 holds the actual answer.
+
+## Late Chunking (Conditional Embeddings)
+
+Late chunking flips the order of the two steps. The flow is:
+
+1. Take the long document.
+2. Feed the **entire document** through the embedding model in a single pass. The model produces one vector per token for every token in the document. Because modern embedding models are built on transformers, each token's vector is influenced by every other token in the document through the attention mechanism. Every token embedding already carries the full document's context.
+3. **Now** decide the chunk boundaries and split the **sequence of token embeddings** (not the raw text) into groups — tokens 1 through 200 become Chunk 1, tokens 201 through 400 become Chunk 2, and so on.
+4. Pool the token embeddings inside each group into one chunk vector.
+5. Store the chunk vectors in the vector database.
+
+Because the token vectors were produced while the model was looking at the whole document, each chunk embedding is **conditioned on the rest of the document**, not just its own text. This property is called **conditional embeddings**. Chunk 2 now knows that *"It"* refers to the phone mentioned earlier, because the token vectors for Chunk 2 were computed in the presence of Chunk 1's tokens.
+
+The chunking step is called "late" because it is deferred until after the expensive embedding pass is done.
+
+## Why Late Chunking Beats Naive Chunking
+
+Late chunking fixes the specific weakness that naive chunking introduces: broken references across chunk boundaries. Three concrete gains fall out of it:
+
+- **Pronouns and references survive.** Words like *it*, *they*, *this product*, *the policy* keep their meaning because the token embeddings were computed with the full document in view.
+- **Short or vague chunks become retrievable.** A chunk like *"It has a better camera"* is almost useless under naive chunking because the embedding has no signal about *what* has a better camera. Under late chunking, that same chunk's vector carries enough surrounding context to still match a relevant query.
+- **Chunking strategy becomes less fragile.** The penalty for cutting slightly in the wrong place is smaller, because the tokens on either side of the cut were embedded together.
+
+## Trade-Offs and When to Use Late Chunking
+
+Late chunking is not free. It comes with two real requirements:
+
+- **The embedding model must support long inputs.** The entire document has to fit through the model in one pass, so the embedding model needs a long context window. Models designed for this include Jina Embeddings v2 and v3 and Nomic Embed. A standard short-context embedding model cannot do late chunking on a long document without first splitting it — which defeats the purpose.
+- **A single long forward pass replaces many short ones.** Total compute is often similar or even lower than naive chunking, but memory usage per pass is higher because the full token sequence must be held at once.
+
+As a rule of thumb, prefer **naive chunking** (with a recursive splitter) as the baseline — it is simple, fast, and good enough for most prototypes. Reach for **late chunking** when the documents are long, when references across chunks matter (legal text, technical manuals, research papers, long policies), or when retrieval quality on short chunks is noticeably poor. Late chunking is an optimization on top of a chunking strategy, not a replacement for one — you still need to pick *how* to cut; you just cut later.
+
+---
+
+# Slide 13 — Query Pre-Processing: Modifying Queries to Improve Retrieval
+
+Slide 3 introduced query pre-processing as one of the boxes in the retrieval pipeline (`User Query → Query pre-processing → Database → Documents`). This slide opens that box and shows what actually happens inside it. The raw question a user types is almost never in the ideal shape for retrieval — it may have typos, be too vague, be too narrow, use different vocabulary than the documents, or even be unsafe to run. Query pre-processing is the set of fixes applied to the raw query before it reaches the retriever, grouped into four buckets.
+
+## Why Query Pre-Processing Exists
+
+The retriever only sees the query it is given. If that query is messy, narrow, or off-topic, retrieval will be bad no matter how good the vector database or the embedding model is. Pre-processing exists to give the retriever the best possible version of the user's question. It is the cheapest place to improve retrieval quality — changes here cost nothing at storage time and often more than pay for themselves in answer quality.
+
+> **The goal of pre-processing is to turn a raw human question into a well-shaped search query.**
+
+## Query Classification
+
+Before anything else, the system decides *what kind of question* it is dealing with. Different kinds of questions need different retrieval paths, and classifying up front lets the system pick the right one. Three useful splits are:
+
+- **Popular vs long tail** — Popular questions like *"What is Python?"* are well covered and retrieve easily. Long-tail questions like *"What is the retry behavior of library X version 3.2.1?"* are rare and usually need more aggressive retrieval or expansion to hit the right chunk.
+- **Broad and ambiguous vs narrow** — A broad query like *"Tell me about AI"* is too open to retrieve well and usually needs a clarifying question or aggressive expansion. A narrow query like *"What is the default timeout in requests.get?"* can go straight to the retriever.
+- **Factual vs reasoning** — Factual questions ask for a stored fact (*"When was OpenAI founded?"*). Reasoning questions ask the LLM to weigh options (*"Should we use RAG or fine-tuning for our case?"*). Retrieval is enough for factual; reasoning questions usually retrieve supporting context but lean on the LLM to think.
+
+Classification is the branching point for everything that follows.
+
+## Query Cleaning and Rewriting
+
+Once the query type is known, the raw text is tidied up so the retriever can actually work with it.
+
+- **Remove special characters and fix typos** — A query like *"wht is RAG??!!"* becomes *"what is RAG"*. This is basic hygiene but matters a lot for term-based retrieval (BM25), which does literal matching.
+- **Lemmatization and stemming** — Reduce words to their root form so different surface forms match the same token. *"running"*, *"ran"*, and *"runs"* all collapse to *"run"*. Lemmatization is the smarter, dictionary-based version; stemming is the faster, rule-based version. Both help BM25 recall.
+- **Step-back prompting** — Instead of searching with the original narrow question, ask an LLM to rewrite it into a broader, more general question first. For example, *"Did Einstein attend ETH Zurich in 1896?"* steps back to *"What is Einstein's education history?"*. The retriever runs on the broader question, which pulls in richer context, and the LLM then uses that context to answer the original narrow question. This is particularly useful when the narrow question matches few documents directly but sits inside a well-documented topic.
+
+## Query Expansion
+
+Even a clean query may be too short or too literal to retrieve well. Expansion adds more signal to the query so it can match documents that use different wording.
+
+- **Add synonyms** — If the user asks about *"doctor"*, expand the query to also search for *"physician"*, *"clinician"*, and *"MD"*. This is essential for term-based retrieval where the user's word and the document's word must literally overlap.
+- **HyDE — Hypothetical Document Embeddings** — A clever technique that flips the search direction. Instead of embedding the short question and hoping it lands near the real answer, ask an LLM to write a **hypothetical answer** to the question, embed that hypothetical answer, and use its vector as the search query. The intuition is that a full answer-shaped passage looks more like the real document you are trying to find than a short question does, so cosine similarity has a much easier job. The hypothetical answer can be factually wrong — it is only used for retrieval, never shown to the user. The real answer is generated later using the documents that were actually retrieved.
+
+## Policy and Safety Check
+
+Before the query goes to the retriever or the LLM, it is run through safety filters. This bucket is not about improving retrieval quality — it is about preventing the system from doing something it should not do.
+
+- **Profanity check** — Block or sanitize abusive language before it propagates into logs, retrieval, or downstream prompts.
+- **PII redaction** — Strip personally identifiable information (names, email addresses, phone numbers, card numbers) from the query. This protects the user, keeps logs safe, and avoids sending personal data to an external LLM provider.
+- **Topic relevance check** — Confirm the question is in scope for this system. A medical chatbot should not be answering legal questions; an internal HR assistant should not be answering coding questions. Off-topic queries are refused here rather than retrieved against the wrong corpus, which would produce confidently wrong answers.
+
+## The Order of the Four Steps
+
+The four buckets are usually applied in this order: **classify → clean → expand → safety-check**. Classification decides which path to take. Cleaning and rewriting fixes how the query reads. Expansion makes the query richer. The safety check is the final gate before the query is allowed to hit the retriever or the LLM. Each step is cheap on its own, but together they lift retrieval quality more than most people expect — which is why production RAG systems almost always invest here before they invest in fancier retrievers or rerankers.
+
+---
+
+# Slide 14 — Choosing the Right Embedding Model in RAG
+
+The embedding model is the heart of the retriever — it is what turns both the stored documents and the incoming user query into vectors so they can be compared. If the embedding model is wrong for the use case, every retrieval after it suffers, and no amount of clever chunking, reranking, or prompting can fully fix it. There is no single "best" embedding model; the right choice depends on five factors that this slide lays out.
+
+## Why This Choice Matters
+
+Unlike a chunking strategy or a top-k setting, the embedding model is **hard to change later**. Every document in the vector database was embedded with a specific model, and every query must be embedded with the same model. Switching embedding models means re-embedding the entire corpus — a one-time cost that can be large for a big knowledge base. That is why the embedding model deserves a careful decision up front, weighed against all five factors below.
+
+## Relevance
+
+Relevance is the primary factor. An embedding model's job is to map text into a vector space so that pieces of text with similar meaning end up close together and unrelated pieces end up far apart. For RAG the only question that matters is whether this mapping is **accurate enough that relevant chunks end up at the top of the ranked list** when a query is embedded. A model that scores well on generic similarity benchmarks but ranks the wrong chunks first for the actual queries users will ask is useless. Relevance must be measured on your own data, not on someone else's benchmark.
+
+In practice, you test this by running a small golden set of real queries against a few candidate models and comparing Recall@k and NDCG@k (the metrics from Slide 7). Whichever model ranks the right chunks highest on that golden set wins — regardless of what the public leaderboards say.
+
+## Domain Specificity
+
+General-purpose embedding models such as `text-embedding-3-small` and `bge-small` are trained on the open web and work well for general text. Specialized domains are a different story, because they carry their own vocabulary and their own notion of what "similar" means:
+
+- In **law**, the word *"consideration"* has a precise contractual meaning, not its everyday sense.
+- In **medicine**, *"MI"* is myocardial infarction and *"PE"* is pulmonary embolism — not terms a general model will understand correctly out of the box.
+- In **finance**, *"call"* and *"put"* are options contracts, not phone calls.
+
+On specialized corpora, a general model often clusters documents by surface vocabulary rather than by domain meaning, which produces subtly wrong retrieval. For those cases, a **domain-tuned embedding model** (for example `LegalBERT`, `BioBERT`, `FinBERT`) or an embedding model fine-tuned on your own domain data usually retrieves noticeably better.
+
+## Performance vs Cost
+
+Bigger and newer embedding models generally retrieve better, but they come with two real cost axes that have to be weighed against quality.
+
+The first is **storage cost, driven by vector dimensions**. A 1536-dimensional vector takes roughly twice the disk and memory of a 768-dimensional one. Across millions of chunks this turns into a real infrastructure bill — vector databases charge by vector count and size.
+
+The second is **inference cost, driven by latency**. Larger models take longer to embed text both during indexing and at query time. Query-time latency is the painful one because it adds to every single user request. A 300 millisecond embedding step in front of the retriever is very different from a 30 millisecond one when compounded with LLM generation time.
+
+For most production systems, a mid-tier embedding model combined with a reranker on top (see Slide 8) beats a giant embedding model used alone. You pay less for embedding and let the reranker do the heavy lifting only on the top-k candidates.
+
+## Language Support
+
+If the users or the documents are not all in English, a **multilingual embedding model** is required — one where, for example, *"doctor"* in English, *"médecin"* in French, and *"医生"* in Chinese end up near each other in the vector space. Common multilingual options include `multilingual-e5` and `paraphrase-multilingual-MiniLM`.
+
+Using an English-only embedding model on a multilingual corpus is one of the most common silent failures in RAG systems. Retrieval appears to "sort of work" because English queries do fine, but quality on non-English queries is quietly terrible and the problem is easy to miss until users complain.
+
+## Hosting
+
+There are two paths for running an embedding model, each with its own trade-offs.
+
+The first path is **API-based models** — services like OpenAI, Cohere, or Voyage. The appeal is convenience: a single HTTP call, no infrastructure to manage, and automatic scaling. The trade-offs are per-call cost, vendor lock-in, and most importantly the fact that data is being sent to a third party. For many projects, especially in regulated industries, that last point alone decides the question.
+
+The second path is **self-hosted open-source models** — running something like `bge`, `nomic-embed`, or `jina-embeddings` on your own infrastructure. You get full control, predictable cost, and full data privacy. The trade-offs are operational overhead, GPU provisioning, and the responsibility of keeping the model and its deployment up to date.
+
+The right choice here is less about which model is slightly better on a leaderboard and more about whether your data is allowed to leave your infrastructure and whether your team wants to own machine learning operations.
+
+## How to Actually Pick One
+
+A practical workflow: start with a reasonable default (a general-purpose model like `text-embedding-3-small` or `bge-small`), build a small golden set of queries with known-correct chunks, measure Recall@k and NDCG@k against two or three candidate models, and only move to a domain-specific or larger model if the numbers justify it. Cost and hosting constraints then narrow the candidate list further. The winner is whichever model sits at the best point of the **quality / cost / privacy** triangle for your specific use case — not whichever model is most popular.
+
+---
+
+# Slide 15 — Which Vector Database to Choose: Pinecone vs Chroma vs Qdrant
+
+Once documents have been chunked and embedded, the vectors need somewhere to live — a place that can store millions (or billions) of them and search them quickly by similarity. That is what a vector database does. The three most commonly compared options are **Pinecone, Chroma, and Qdrant**, and the right choice among them usually comes down to three questions: who hosts the database, how big does it need to scale, and how much operational effort is the team willing to take on.
+
+## Why the Choice Matters
+
+Like the embedding model, the vector database is a decision that is costly to change later. Your chunks and their vectors, your metadata schema, and sometimes your client code all get shaped around the database you pick. Migrating vectors between databases is possible but slow and error-prone at scale. The trade-off is not really about raw performance — all three options perform well when configured correctly — but about the operational model: renting a service versus running one yourself.
+
+## The Three Options in One Line Each
+
+> **Pinecone — fully managed. Chroma — open-source, simple, prototyping-first. Qdrant — open-source, production-grade at scale.**
+
+Everything that follows is the detail behind those three one-liners.
+
+## Type: Who Hosts It
+
+**Pinecone** is a **fully managed SaaS**. You do not install anything and you do not run any servers. You sign up, get an API key, and call their API. They handle hosting, scaling, upgrades, and failover. The trade-off is that Pinecone is a paid service and your data lives on their infrastructure.
+
+**Chroma** is **open-source**. You can run it locally on your own laptop for development or deploy it on your own servers. Chroma also offers a hosted cloud option for teams that want someone else to operate it.
+
+**Qdrant** is also **open-source**, with the same dual pattern — self-host it on your own infrastructure, or use Qdrant's managed cloud. Both Chroma and Qdrant give you control over where the data lives.
+
+The key split here is between **Pinecone as rented convenience** and **Chroma or Qdrant as open-source tools you control**.
+
+## Scalability: How Big Can It Go
+
+**Pinecone** is built for **massive scale**. It can handle billions of vectors and scales automatically — you do not need DevOps effort to grow from thousands to millions to billions. This is its primary selling point.
+
+**Chroma** is built for **small to medium scale**, typically up to around **10 million vectors**. It is the right choice for prototyping, personal projects, internal tools, and R&D. Beyond that scale, its performance and operational characteristics start to struggle.
+
+**Qdrant** is built for **massive scale** as well. It is designed to handle billions of vectors with good performance, comparable to Pinecone in raw capability — but you are responsible for running and tuning the cluster yourself (or paying for their managed cloud).
+
+The practical rule: a million vectors? Any of them will work. A billion vectors? You want Pinecone or Qdrant, not Chroma.
+
+## Ease of Use: How Fast Can You Start
+
+**Pinecone** is **easy** to use. It hides all infrastructure complexity behind a simple API — sign up, get an API key, and start inserting vectors with a handful of lines of code.
+
+**Chroma** is **simple and Python-native**. It is the easiest option to get started with for development because it installs as a Python package and runs in the same process as your code. This is why most RAG tutorials and prototypes use Chroma — it minimizes the distance between "I have an idea" and "I have a working demo."
+
+**Qdrant** is **moderate** in ease of use. It is slightly more involved than Chroma because it is built with production features in mind — cluster management, sharding, replication, and rich filtering capabilities. Those features are exactly what make it production-ready, but they also mean there is more to configure and understand.
+
+## Performance: Latency and Throughput
+
+**Pinecone** delivers **low latency and high throughput** at any scale, by design. Performance is consistent and predictable, which is part of what you are paying for.
+
+**Chroma** offers **good performance for small scale**. It is fast enough for prototypes, demos, and small production workloads, but was not engineered to handle heavy production traffic.
+
+**Qdrant** delivers **low latency and high throughput** on par with Pinecone when properly configured. Achieving that performance is your responsibility rather than the provider's — which is the core trade-off of the self-hosted path.
+
+## How to Actually Pick One (Vector DB)
+
+A practical decision tree:
+
+- **Prototyping, learning, or building an internal tool?** Use **Chroma**. It is the fastest path from idea to working RAG demo, and it is more than capable up to around 10 million vectors.
+- **Going to production, do not want to manage infrastructure, and have a budget?** Use **Pinecone**. You pay for convenience and get predictable performance, automatic scaling, and zero DevOps effort in return.
+- **Going to production, need full control over your data and infrastructure, and have a team that can run distributed systems?** Use **Qdrant**. You get the same scale and performance profile as Pinecone, but open-source and self-hostable.
+
+The underlying principle is the same as the embedding model decision: pick whatever sits at the best point of the **convenience / control / cost** triangle for your specific situation, not whichever database is most fashionable this quarter.

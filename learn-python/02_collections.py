@@ -18,12 +18,12 @@ fruits.append("orange")         # add to end
 fruits.insert(0, "grape")       # add at index
 fruits.remove("banana")         # remove by value
 
-print(f"Fruits: {fruits}")
-print(f"First: {fruits[0]}")
-print(f"Last: {fruits[-1]}")
-print(f"Slice [1:3]: {fruits[1:3]}")
-print(f"Length: {len(fruits)}")
-print(f"Sorted: {sorted(fruits)}")
+# print(f"Fruits: {fruits}")
+# print(f"First: {fruits[0]}")
+# print(f"Last: {fruits[-1]}")
+# print(f"Slice [1:3]: {fruits[1:3]}")
+# print(f"Length: {len(fruits)}")
+# print(f"Sorted: {sorted(fruits)}")
 
 
 # ---------------- EXAMPLE 2: Dictionaries ----------------
@@ -47,7 +47,7 @@ person["age"] = 31                  # update
 
 # Iterate
 for key, value in person.items():
-    print(f"  {key} -> {value}")
+    print(f"MMJ  {key} ->MPK {value}")
 
 # Keys & values
 print(f"Keys: {list(person.keys())}")
@@ -72,3 +72,28 @@ print(f"Coordinates: {coordinates}")
 # 1. Create a list of 5 programming languages, sort them alphabetically
 # 2. Build a dict representing yourself (name, age, skills)
 # 3. Find unique words in: "the quick brown fox jumps over the lazy dog the fox"
+
+print("=== Try It Yourself 2: collections ===")
+
+# 1. Create a list of 5 programming languages, sort them alphabetically
+programming_languages = ["Python", "JavaScript", "Java", "C++", "Go"]
+print(f"Programming languages: {programming_languages}")
+print(f"Sorted: {sorted(programming_languages)}")
+
+# 2. Build a dict representing yourself (name, age, skills)
+person = {
+    "name": "Mutyala",
+    "age": 30,
+    "skills": ["Node.js", "Python", "AI"],
+    "is_active": True
+}
+print(f"Person: {person}")
+
+
+# 3. Find unique words in: "the quick brown fox jumps over the lazy dog the fox"
+sentence = "the quick brown fox jumps over the lazy dog the fox"
+words = sentence.split()
+unique_words = set(words)
+print(f"Unique words: {unique_words}")
+
+

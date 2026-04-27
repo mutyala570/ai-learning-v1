@@ -66,8 +66,9 @@ people = [
 
 # Sort by age
 sorted_people = sorted(people, key=lambda p: p["age"])
-for p in sorted_people:
-    print(p)
+
+sort=[p for p in sorted_people] 
+print("sort -----",sort)
 
 # map & filter with lambda
 numbers = [1, 2, 3, 4, 5]
@@ -79,5 +80,6 @@ print(f"Evens: {evens}")
 
 # ---------------- TRY IT YOURSELF ----------------
 # 1. Write a function `calculate(op, a, b)` that does +, -, *, / based on op
+
 # 2. Write a function that accepts any number of strings and returns them joined
 # 3. Sort a list of dicts by name alphabetically using lambda
