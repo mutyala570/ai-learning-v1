@@ -149,3 +149,54 @@ Do not invent. A 10-second clarification question is cheaper than a rewrite.
 ## 9. After writing
 
 End the response with one short sentence stating what was created (file path) and what the next expected input is (e.g. "share slide 2 when ready"). No long summary of what is inside the file — the user can read it.
+
+---
+
+## 10. Summary files — special shape
+
+When the user asks to **write a summary** (recap, condensed version, "summarise X", "give me a summary of week N", "summary of these notes"), use this hierarchical shape — **not** flowing paragraphs that mention several items inline, and **not** a flat one-line glossary.
+
+### 10.1 Core rule
+
+Every concept, sub-concept, and leaf item gets its own numbered heading with its own short explanation. The reader should be able to scan the heading tree and pick the exact node they want to read, without wading through a paragraph that mixes several ideas.
+
+### 10.2 Heading depth
+
+Use numbered hierarchical headings up to four levels deep when the structure calls for it:
+
+- `# 1. Main Section` — top-level area (e.g. "The Agent Frame")
+- `## 1.1 Sub-area` — a grouping inside the main section (e.g. "Memory — Two Categories, Four Types")
+- `### 1.1.1 Item` — a member of the grouping (e.g. "Short-Term Memory")
+- `#### 1.1.1.1 Sub-item` — a sub-type of an item (e.g. "Semantic Memory" inside "Long-Term Memory")
+
+Go to four levels only when there is genuine sub-grouping (e.g. "long-term memory has three types" — long-term gets level 3, each type gets level 4). Do not pad with empty levels.
+
+### 10.3 Per-item explanation
+
+Each **leaf** heading is followed by a short prose explanation — typically two to four sentences. Long enough to actually explain the idea, short enough that one heading equals one bite-sized concept. No bullet dumps inside the explanation; use full sentences.
+
+### 10.4 Repeated structure for compared items
+
+When the section compares N options that share the same shape (e.g. three chunking strategies, three vector DBs, four prompting styles), give every option **the same set of sub-headings** so the comparison is easy to scan. Common patterns:
+
+- **For strategies / techniques:** `How it works`, `Advantage`, `Disadvantage`.
+- **For tools / vendors:** `What it is`, `Best for`, `Trade-off`.
+- **For pipeline stages / steps:** numbered list of steps, each as its own sub-heading.
+
+### 10.5 Tables
+
+Use a small table only when it genuinely beats prose at conveying the comparison (e.g. a decision matrix like vector-DB picker, or a metrics-by-use-case grid). One or two tables per file is plenty. Do not table-dump every list.
+
+### 10.6 Top of the summary file
+
+Standard top-of-file structure from sections 3.1–3.3 still applies: `# Title`, then `## Topics Covered in This Document` index linking to each main section, then `---`, then the body.
+
+### 10.7 What the summary is *not*
+
+- **Not a glossary** — flat one-line entries per topic belong in a recap/cheatsheet, not in a summary. If the user wants that shape they will say "recap" or "cheatsheet".
+- **Not flowing paragraphs** — paragraphs that mention three or four sub-items inline force the reader to scan prose to find one idea. Break the items out into their own headings instead.
+- **Not bullet dumps** — within an explanation, write full sentences. Bullets are only for genuine enumerations the source itself enumerates.
+
+### 10.8 Reference example
+
+`week-three/week-two-summary.md` is the canonical example of this shape — read it before writing a new summary if the structure is unclear.
