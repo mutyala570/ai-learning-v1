@@ -24,9 +24,9 @@ def squere_root(a: int) -> float:
     return math.sqrt(a)
 
 def chat_with_tools(user_message: str):
-   message = HumanMessage(content=user_message)
+   message = [HumanMessage(content=user_message)]
    
-   response = llm.invoke(message)
+   response = llm_with_tools.invoke(message)
    message.append(response)
 
    if tool_calls := response.tool_calls:
