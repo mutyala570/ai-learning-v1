@@ -2,17 +2,17 @@
 
 **Single-source dashboard.** If you ask me "where are we?" or "what's next?", I read this file first — not the whole `goal/` folder.
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-28
 
 ---
 
 ## TL;DR current state
 
 - **Project:** Order & Logistics Support Agent for Qwipo B2B customers
-- **Phase:** **P0 — Python core learning — starts Sat 2026-04-25 (weekends only)**
+- **Phase:** **P0 — Python core learning — W1 done ✅, W2 next on Sat 2026-05-02 (weekends only)**
 - **Agent build:** **M0 (planning done) — blocked on P0**
 - **Learning schedule:** weekdays = external AI course + revision into `week-N/` folders; **weekends (Sat + Sun) = Python self-study** via `learn-python/`. Full plan in `04-learning-status.md`.
-- **Next action (user):** Sat 2026-04-25 — start with `learn-python/01_basics.py` and `02_collections.py`
+- **Next action (user):** Sat 2026-05-02 — `learn-python/05_exceptions.py` and `06_file_io.py` + `pathlib`/`json`/context-manager extras
 - **Next action (me, when P0 unblocks):** M1 skeleton (FastAPI + Groq echo endpoint)
 
 ---
