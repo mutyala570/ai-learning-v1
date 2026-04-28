@@ -200,3 +200,87 @@ Standard top-of-file structure from sections 3.1–3.3 still applies: `# Title`,
 ### 10.8 Reference example
 
 `week-two/week-two-summary.md` is the canonical example of this shape — read it before writing a new summary if the structure is unclear.
+
+---
+
+## 11. Slide notes — per-slide entries inside `week-N/day-<M>-<topic>.md`
+
+When the user shares a slide (image, screenshot, description, or paste) and asks me to write it up inside a day-bound video note, the entry MUST be **crispy**. The user has explicitly rejected verbose, fragmented, or pre-baked slide write-ups in this project. The rules below are non-negotiable.
+
+### 11.1 Crispy is the rule
+
+A slide is **one idea**. The whole slide entry should be readable top-to-bottom in **under a minute**. Default cap: **at most three `##` sub-sections** under a slide. Going past three needs a real reason — not a hunch.
+
+### 11.2 Use numbered lists for enumerations, not separate sub-headings
+
+When a slide has N reasons, N steps, N actors, N options, N anything — use **one** sub-section containing a **numbered list**, NOT N separate sub-headings. One sub-heading per list item is fragmentation; the reader has to scroll past N collapsed mini-sections to compare items that should sit next to each other.
+
+Examples of the right pattern:
+
+- "The Four Gaps" → one `##` sub-heading, four numbered list items underneath.
+- "The Eight Messages" → one `##` sub-heading, eight numbered list items.
+- "The Three Actors" → one `##` sub-heading, short prose paragraph naming all three.
+
+### 11.3 Default slide shape
+
+Most slides fit this template — three `##` sub-sections, no more:
+
+```markdown
+# Slide N — <Title>
+
+[One short intro sentence stating what the slide is about. No more.]
+
+## <Sub-section 1 — usually the setup or "core idea">
+[One paragraph.]
+
+## <Sub-section 2 — the enumeration or main content>
+[Numbered list with one or two sentences per item, OR one paragraph.]
+
+## <Sub-section 3 — usually the key insight or "what this solves">
+[One paragraph.]
+```
+
+Simpler slides are fine and often better — one intro sentence plus one numbered list, with zero `##` sub-headings, is a perfectly good slide entry. Do not pad to fill the template.
+
+### 11.4 Do NOT pre-bake content the user did not ask for
+
+When the user shares a slide, write up **that slide and nothing else**. Do **NOT** add any of these:
+
+- An "Agenda" section (unless the slide itself is an agenda).
+- A "Pre-Session Context" / "What I already know from Week N" recap.
+- A "Discussion Points" / "Questions for me" / "Open Questions" bucket.
+- A "Connection to my Qwipo project" / "Which milestones this unblocks" tie-in.
+- A "Candidate tools I might need" / "Likely sub-topics" speculative section.
+- "How to use this file while watching" instructions.
+
+These are all examples of over-engineering this project has rejected. They produce noise the user has to delete. Stick to the slide's content; the user will ask for project-tie-ins explicitly when they want them.
+
+### 11.5 Crispy writing style
+
+- Cut hedging and throat-clearing ("It is important to note that…", "As we have seen…", "This slide is the…").
+- Cut sentences that just restate what the previous sentence said.
+- Cut "in summary" / "to recap" closers — the section ends when the last substantive sentence ends.
+- One sub-section = one idea. If a sub-section has three distinct ideas, split it. If three sub-sections share one idea, merge them.
+- Bold a key term **once** (the first time it appears). Do not re-bold it every paragraph.
+
+### 11.6 Skeleton file before slides arrive
+
+When the user asks for a fresh day-N file before any slide has been shared, the file should contain only:
+
+```markdown
+# Week N — Day M: <Topic> (Video V)
+
+**Agenda:** <one-line agenda if known>.
+
+## Slides Covered in This Document
+
+*To be filled as slides are shared.*
+
+---
+```
+
+Nothing else. No pre-loaded sections, no placeholders for "expected slides", no project-tie-in scaffolding. Slides arrive one at a time; the file grows incrementally.
+
+### 11.7 Reference example
+
+`week-three/day-one-tool-calling-inventory.md` Slide 1 (Why We Need Tool Calling) and Slide 2 (End-to-End Tool Calling Sequence) are the canonical examples — three sub-sections each, numbered lists for the enumerations, no filler.
