@@ -1,190 +1,65 @@
 # Week 3 — Day 1: Tool Calling & Inventory Case Study (Video 1)
 
-This file is the home for today's Week 3 Day 1 session. The session has two parts on the agenda — a deep dive on **Tool Calling** and an **Inventory Case Study** that applies it to a real B2B problem. I will fill in the slide-by-slide notes while watching; the pre-session context section below is the bridge from what I already know (Week 2 covered the basics of function calling) to what the video is about to layer on top.
+**Agenda:** Part A — Tool Calling (deep dive). Part B — Inventory Case Study.
 
-> **How to use this file while watching:** keep the "Slide N — TBD" placeholders open, add the slide title and notes as each slide appears, and jot any question that pops into the **Discussion Points** section at the bottom. Then come back here to discuss with me.
+## Slides Covered in This Document
 
-## Topics Covered in This Document
+### Slide 1 — Why We Need Tool Calling
+1. [**The Core Problem**](#the-core-problem)
+2. [**The Four Gaps**](#the-four-gaps)
+3. [**What Tool Calling Solves**](#what-tool-calling-solves)
 
-1. [**Pre-Session Context — What I Already Know**](#1-pre-session-context--what-i-already-know)
-2. [**Agenda for This Session**](#2-agenda-for-this-session)
-3. [**Part A — Tool Calling (Deep Dive)**](#3-part-a--tool-calling-deep-dive)
-4. [**Part B — Inventory Case Study**](#4-part-b--inventory-case-study)
-5. [**Discussion Points (Fill After Watching)**](#5-discussion-points-fill-after-watching)
-6. [**Connection to My Qwipo Project**](#6-connection-to-my-qwipo-project)
-
----
-
-# 1. Pre-Session Context — What I Already Know
-
-Week 2 already introduced **function calling / tool use** as the mechanism that lets an LLM reach external systems. Today's video is a deeper pass on the same topic, so I want this section to be the anchor — when the video says "step 3 of the tool-call loop", I can map it onto what I already learned. Anything new in the video should attach to a node here, not float.
-
-## 1.1 The Six-Step Tool Calling Flow (from Week 2)
-
-### 1.1.1 Step 1 — Define Tools as Schemas
-
-Every tool is registered with a **name**, a **description**, and a **parameter schema**. The LLM reads these descriptions and uses them to decide when each tool is appropriate.
-
-### 1.1.2 Step 2 — Send Message + Tool List
-
-The user message and the full list of available tool definitions are sent to the LLM in one call.
-
-### 1.1.3 Step 3 — LLM Decides
-
-The LLM either answers directly from training or returns a structured JSON requesting a specific tool with specific arguments.
-
-### 1.1.4 Step 4 — Application Executes
-
-**The LLM does not run the tool itself.** Your application receives the tool-call request and actually runs the function — calls the API, queries the DB, sends the email. This separation is what makes tool use safe.
-
-### 1.1.5 Step 5 — Send Result Back
-
-The tool's output is sent back to the LLM in a follow-up call so the model has the result in its context.
-
-### 1.1.6 Step 6 — LLM Synthesises Final Response
-
-With the tool result now in context, the LLM produces the natural-language answer for the user.
-
-## 1.2 RAG vs Tools — Why Inventory Belongs to the Tool Path
-
-From Week 2's decision rule: **static document knowledge → RAG, live/dynamic/action → Tool, user-specific → Memory**. Inventory data is **live and dynamic** — stock counts change every minute as orders come in and out — so inventory questions belong on the **tool path**, not the RAG path. That is exactly why the case study is paired with tool calling rather than with the RAG slides from Week 2.
-
-## 1.3 What I Expect to Learn New Today
-
-I do not know the slides yet, but based on the agenda I would expect the deeper tool-calling pass to cover at least: how schemas are written in practice (JSON Schema specifics, required vs optional fields, type hints), how the LLM picks between **multiple** tools, how parallel/concurrent tool calls work, what to do when a tool errors, and how to keep cost/latency under control when several tool calls chain. The inventory case study should then put all of this into a worked end-to-end example.
+### Slide 2 — End-to-End Tool Calling Sequence
+1. [**The Four Actors**](#the-four-actors)
+2. [**The Flow — Eight Messages**](#the-flow--eight-messages)
+3. [**Why the Agent Sits in the Middle**](#why-the-agent-sits-in-the-middle)
 
 ---
 
-# 2. Agenda for This Session
+# Slide 1 — Why We Need Tool Calling
 
-## 2.1 Part A — Tool Calling (Deep Dive)
+A plain LLM is capable at one thing — generating text from patterns it learned during training — but it is sealed off from the live world. Tool calling is what bridges that gap.
 
-A more detailed pass on tool calling than the Week 2 introduction. Likely covers schema design, multi-tool selection, parallel calls, error handling, and patterns for keeping the loop bounded.
+## The Core Problem
 
-## 2.2 Part B — Inventory Case Study
+An LLM is a frozen function. Text in, text out, with no built-in ability to look anything up, change anything, or compute anything outside its own weights. Everything it knows was baked in at training and stops updating the moment training ends. For a casual chatbot this is fine; for a product where the user asks *"what is my order status"* or *"what is the weather today"*, the answer simply does not live in the weights.
 
-A worked example where tool calling answers real B2B inventory questions — stock checks, low-stock alerts, reorder triggers, branch-level availability. The case study makes the abstract tool-calling flow concrete on a problem similar to my Qwipo project.
+## The Four Gaps
 
----
+1. **No live data.** Frozen at training cutoff — current prices, today's stock, the user's latest order, this morning's news are all invisible. The model can only guess, and the guess sounds confident even when wrong.
+2. **No actions.** LLMs only generate text. They cannot send an email, create a record, or update a row. A request like *"reorder product X"* is an action, not an information question — the model can advise but never do.
+3. **No reliable computation.** LLMs are bad at arithmetic and worse at applying business rules consistently. For *"total value of all pending orders for branch B"*, the right answer is a SQL query or calculator, not a smarter prompt.
+4. **No access to private systems.** LLMs are trained on public data and have no view into the CRM, order DB, or internal wiki. **RAG** handles the document side of this gap; **tool calling** handles the live-system side.
 
-# 3. Part A — Tool Calling (Deep Dive)
+## What Tool Calling Solves
 
-> Fill in the slide title and notes as each slide appears. Use full sentences in the body, not bullet dumps. If a slide has multiple sub-topics, break each into its own `##` sub-heading inside the slide.
-
-## 3.1 Slide 1 — TBD
-
-*Add slide title once it appears. Then write the explanation in your own words — what the slide says, why it matters, and how it connects to the Week 2 six-step flow above.*
-
-## 3.2 Slide 2 — TBD
-
-*Add slide title and explanation here.*
-
-## 3.3 Slide 3 — TBD
-
-*Add slide title and explanation here.*
-
-## 3.4 Slide 4 — TBD
-
-*Add slide title and explanation here.*
-
-## 3.5 Slide 5 — TBD
-
-*Add slide title and explanation here.*
-
-> Add more `## 3.N Slide N — TBD` blocks below if the part has more slides than placeholders. Renumber if needed.
+The LLM stays in its lane — reasoning over text — but gains the ability to **request** external operations like *"fetch this order"* or *"send this email"*. The application executes the request and feeds the result back into the model's context for synthesis. The LLM never touches the database or API directly, but its answers are now grounded in live data, real computation, and real actions, while the application controls what is allowed to run. That separation is what makes tool calling both **useful** and **safe**.
 
 ---
 
-# 4. Part B — Inventory Case Study
+# Slide 2 — End-to-End Tool Calling Sequence
 
-> Same approach — fill in slides as they appear. Pay extra attention to: which tools are defined, what each tool's schema looks like, what data each tool returns, how the agent loop chains them, and how the final answer is composed.
+A sequence diagram of one full tool-calling round, drawn across four columns: **Task**, **Agent**, **Model**, **Tool**. The Agent sits in the middle as the orchestrator. The Model never calls Tools directly — it only decides which Tool to use and asks the Agent to run it.
 
-## 4.1 Slide 1 — TBD
+## The Four Actors
 
-*Add slide title and explanation here.*
+**Task** is the user's request entering the system from outside. **Agent** is the orchestrator that receives the Task, talks to the Model, runs Tool calls on the Model's behalf, and feeds results back; all routing and execution control lives here. **Model** is the LLM — it reasons over text and decides which Tool to call and with what arguments, but never executes Tools itself. **Tool** is the external function or API that actually does the work — query the DB, call the weather service, send the email — and only sees its own arguments and result.
 
-## 4.2 Slide 2 — TBD
+## The Flow — Eight Messages
 
-*Add slide title and explanation here.*
+The diagram shows eight messages in order:
 
-## 4.3 Slide 3 — TBD
+1. **Task → Agent.** The user sends a request into the system. The Agent now owns the round.
+2. **Agent → Model: Task + Tools.** The Agent forwards the Task along with the full list of Tool definitions (name, description, parameter schema), so the Model knows both what to do and what is available.
+3. **Model → Agent: which Tool to use.** The Model decides whether a Tool is needed and replies with the Tool name plus arguments. This is a decision, not an execution.
+4. **Agent → Tool: tool call.** The Agent actually runs the chosen Tool with the chosen arguments. Permissions, validation, and rate limits are enforced here before the Tool runs.
+5. **Tool → Agent: tool result.** The Tool returns its raw output (JSON, number, row). The Agent now holds the live data the Model needed but did not have.
+6. **Agent → Model: Task + Tool result.** The Agent makes a second call to the Model, this time including both the original Task and the Tool result. This re-injection is what makes the Tool's output useful — without it the Model never sees what came back.
+7. **Model → Agent: done.** With both pieces in context, the Model produces the final natural-language answer and signals completion.
+8. **Agent → out: final answer.** The Agent returns the answer to whoever sent the original Task. The Model–Tool round-trip in the middle is invisible to the user.
 
-*Add slide title and explanation here.*
+## Why the Agent Sits in the Middle
 
-## 4.4 Slide 4 — TBD
-
-*Add slide title and explanation here.*
-
-## 4.5 Slide 5 — TBD
-
-*Add slide title and explanation here.*
-
-> Add more slides below if needed.
-
----
-
-# 5. Discussion Points (Fill After Watching)
-
-A scratch area for things to bring back to the chat. Phrase each one as a real question, not a topic, so it is ready to discuss.
-
-## 5.1 Conceptual Questions
-
-*e.g. "Does the LLM see the tool's full output, or only a summary the application chooses to pass back?"*
-
-- TBD
-- TBD
-
-## 5.2 Implementation Questions
-
-*e.g. "How does the LLM behave if two tools have overlapping descriptions?"*
-
-- TBD
-- TBD
-
-## 5.3 Comparison Questions
-
-*Anything that contrasts with what I learned in Week 2 — places the video disagrees with, refines, or extends the earlier material.*
-
-- TBD
-
-## 5.4 "Did I understand this right?" Checks
-
-*Short statements I want to verify with the chat. Useful when something *seems* clear but I am not 100 percent sure.*
-
-- TBD
+The Model never talks to the Tool directly, and the Tool never talks to the Model directly — both speak only through the Agent. That triangulation gives the Agent three powers: it **enforces safety** (deciding which Tool calls are allowed before running them), it **shapes context** (deciding how much of the Tool result to feed back into the Model), and it **loops** — steps 2 through 6 can repeat with different Tools until the Model says "done". Multi-step agent reasoning is just this same diagram with more loops in the middle, not a different architecture.
 
 ---
-
-# 6. Connection to My Qwipo Project
-
-The whole reason this video matters is the Qwipo Order & Logistics agent. Tool calling is the mechanism the agent will use to reach `bms-order-service` and `logistics-*` services for live data, and inventory is one of the first realistic intents the agent will need to handle. This section is where I link today's lesson to the real project so I do not lose the thread.
-
-## 6.1 Which Project Milestones This Unblocks
-
-### 6.1.1 M4 — Single Tool
-
-The first real implementation milestone after the FastAPI skeleton (M1) and intent classifier (M2). The video's concrete tool examples should let me design my first tool's schema and call loop.
-
-### 6.1.2 M5 — Multi-Tool Agent Loop
-
-If the video covers multi-tool selection and parallel calls, that maps directly onto M5. Note here anything the video says about loop termination, max iterations, and confidence thresholds.
-
-## 6.2 Inventory-Specific Tools I Probably Need
-
-Based on the case study, sketch the tools I think my Qwipo agent will need. These are guesses; the video will sharpen them.
-
-- **`get_stock_for_product(product_id, branch_id)`** — current on-hand stock at a branch.
-- **`get_low_stock_items(branch_id, threshold)`** — products below threshold.
-- **`get_order_status(order_id)`** — the existing M0 use case but as a tool.
-- **TBD** — add or correct after watching.
-
-## 6.3 Open Decisions This Video Might Resolve
-
-From the dashboard `goal/README.md`:
-
-- [ ] Final intent list — confirm draft `order_status | cancellation | policy_qa | small_talk | out_of_scope` (the case study might add **inventory** as a first-class intent → before M2).
-- [ ] Primary LLM choice — the video's tool-calling examples may favour one provider's schema → before M5.
-
----
-
-> **After watching:** ping me with "done with day 1" and we will walk through the Discussion Points section together, then update `goal/04-learning-status.md` to reflect what was covered.
