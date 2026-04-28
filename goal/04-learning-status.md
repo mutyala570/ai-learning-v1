@@ -7,7 +7,7 @@
 ---
 
 ## Current phase
-- **Phase:** P0 — Python core — **in progress (W1 done, W2 next on Sat 2026-05-02)**
+- **Phase:** P0 — Python core — **in progress (W1 done, `05_exceptions.py` done early; W2 continues Sat 2026-05-02 with `06_file_io.py`)**
 - **Last updated:** 2026-04-28
 
 ---
@@ -32,7 +32,7 @@ Each weekend day has a **main files** track (the scaffolded `learn-python/*.py`)
 |---------|------|------------|-------------------|
 | 1 ✅ | Sat 2026-04-25 | `01_basics.py`, `02_collections.py` | Jupyter notebook — 15 min, run one cell, understand the REPL |
 | 1 ✅ | Sun 2026-04-26 | `03_control_flow.py`, `04_functions.py` | `enum.Enum` + `typing.Literal` — used for intent types everywhere |
-| 2 | Sat 2026-05-02 | `05_exceptions.py`, `06_file_io.py` | `pathlib.Path` (modern file paths) · `json` module (load/dump) · writing your own `__enter__`/`__exit__` context manager |
+| 2 (partial) | Sat 2026-05-02 | ~~`05_exceptions.py`~~ done early on 2026-04-28 · `06_file_io.py` still pending | `pathlib.Path` (modern file paths) · `json` module (load/dump) · writing your own `__enter__`/`__exit__` context manager |
 | 2 | Sun 2026-05-03 | `07_oop_basics.py`, `08_oop_inheritance.py` | `@property` getters/setters · `abc.ABC` abstract classes |
 | 3 | Sat 2026-05-09 | `09_dataclasses.py`, `10_async.py` | Type hints deep: `Optional`, `Union`, `Callable`, `TypedDict` · `httpx.AsyncClient` quick intro |
 | 3 | Sun 2026-05-10 | `11_pydantic.py`, `12_decorators.py` | Generators (`yield`) — LangChain streaming depends on it · `logging` module basics (before `structlog` in P1) |
@@ -55,7 +55,7 @@ Source: `AI_ENGINEER_ROADMAP.md` Phase 1, Week 1.
 - [x] Control flow: `if/elif/else`, `for`, `while`, comprehensions  *(W1 Sun — `03_control_flow.py`)*
 - [x] Functions: args, `*args`, `**kwargs`, default values, lambda  *(W1 Sun — `04_functions.py`)*
 - [x] f-strings  *(W1 Sat — `01_basics.py`)*
-- [ ] Exception handling: `try/except/finally`, custom exceptions  *(W2 Sat)*
+- [x] Exception handling: `try/except/finally`, custom exceptions  *(2026-04-28 — `05_exceptions.py`, done early)*
 - [ ] File I/O, `with` context manager  *(W2 Sat)*
 - [ ] Modules, imports, `pip`, `venv`
 

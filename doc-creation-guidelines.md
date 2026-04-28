@@ -199,4 +199,4 @@ Standard top-of-file structure from sections 3.1–3.3 still applies: `# Title`,
 
 ### 10.8 Reference example
 
-`week-three/week-two-summary.md` is the canonical example of this shape — read it before writing a new summary if the structure is unclear.
+`week-two/week-two-summary.md` is the canonical example of this shape — read it before writing a new summary if the structure is unclear.
