@@ -3,6 +3,8 @@ LangChain Tool Calling Practice
 
 Companion code file to `langchain-tool-calling-practice.md`.
 Practice exercises from Week 3 class on LangChain's tool-calling API.
+
+You'll get a (Pdb) prompt at the top of chat_with_tools. Step through with n, inspect with p message, p response, p response.tool_calls. Type q to exit, c to run to the end.  
 """
 
 import json
@@ -24,10 +26,11 @@ def squere_root(a: int) -> float:
     return math.sqrt(a)
 
 def chat_with_tools(user_message: str):
+   breakpoint()
    message = [HumanMessage(content=user_message)]
    
    response = llm_with_tools.invoke(message)# here we invoking the model 
-   print(response)
+#    print(response)
    message.append(response)
 
    if tool_calls := response.tool_calls:
