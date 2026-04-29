@@ -26,7 +26,8 @@ def squere_root(a: int) -> float:
 def chat_with_tools(user_message: str):
    message = [HumanMessage(content=user_message)]
    
-   response = llm_with_tools.invoke(message)
+   response = llm_with_tools.invoke(message)# here we invoking the model 
+   print(response)
    message.append(response)
 
    if tool_calls := response.tool_calls:
@@ -47,8 +48,8 @@ llm_with_tools = llm.bind_tools(tools)
 
 response_1 = chat_with_tools("What is the square root of 16?")
 print(response_1)
-response_2 = chat_with_tools("what is the captal of France?")
-print(response_2)
-response_3 = chat_with_tools("can you calculate the squre root of 2025 for me?")
-print(response_3)
+# response_2  = chat_with_tools("what is the captal of France?")
+# print(response_2)
+# response_3 = chat_with_tools("can you calculate the squre root of 2025 for me?")
+# print(response_3)
 
