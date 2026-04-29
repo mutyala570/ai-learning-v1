@@ -14,6 +14,11 @@
 2. [**The Flow — Eight Messages**](#the-flow--eight-messages)
 3. [**Why the Agent Sits in the Middle**](#why-the-agent-sits-in-the-middle)
 
+### Slide 3 — What an Agent Needs (Process Knowledge + Data Tables)
+1. [**The Two Things**](#the-two-things)
+2. [**How They Map to RAG vs Tools**](#how-they-map-to-rag-vs-tools)
+3. [**Worked Example — Cancellation**](#worked-example--cancellation)
+
 ---
 
 # Slide 1 — Why We Need Tool Calling
@@ -61,5 +66,39 @@ The diagram shows eight messages in order:
 ## Why the Agent Sits in the Middle
 
 The Model never talks to the Tool directly, and the Tool never talks to the Model directly — both speak only through the Agent. That triangulation gives the Agent three powers: it **enforces safety** (deciding which Tool calls are allowed before running them), it **shapes context** (deciding how much of the Tool result to feed back into the Model), and it **loops** — steps 2 through 6 can repeat with different Tools until the Model says "done". Multi-step agent reasoning is just this same diagram with more loops in the middle, not a different architecture.
+
+---
+
+# Slide 3 — What an Agent Needs (Process Knowledge + Data Tables)
+
+A useful agent needs **two distinct things plugged in** — knowledge of how the business operates, and access to where the live facts live. Either alone is useless; both together is what makes the agent able to answer real questions.
+
+## The Two Things
+
+1. **Process knowledge.** How the business *operates* — workflows, rules, escalation paths, refund policies, "if customer says X, do Y". This is *procedural* — it tells the agent **what to do**.
+2. **Data tables.** Where the *facts* live — orders, inventory, customers, transactions, stock counts. This is *transactional* — it tells the agent **what's true right now for this specific case**.
+
+Process knowledge alone gives an agent that knows the rules but has no actual customer data. Data tables alone give an agent that can read rows but doesn't know what to do with them. Both are required.
+
+## How They Map to RAG vs Tools
+
+This is the same split as the RAG-vs-Tools rule from Week 2, just labelled differently:
+
+| Agent need | How you wire it in | Example for Qwipo |
+|------------|-------------------|-------------------|
+| **Process knowledge** | **RAG** over policy and procedure documents | Refund policy PDF, return-window rules, escalation matrix |
+| **Data tables** | **Tools** that query live systems | `get_order_status(order_id)`, `get_stock(product_id, branch_id)` |
+
+So in the project roadmap, the M3 milestone (RAG on policies) is the **process-knowledge layer**. M4 (single tool) and M5 (multi-tool agent loop) are the **data-tables layer**. M2 (intent classifier) decides which layer to hit first based on the question.
+
+## Worked Example — Cancellation
+
+A customer asks *"can I cancel order #12345?"*. A complete answer needs both layers:
+
+1. **Tool** — look up order #12345 in the data table → returns *"shipped 2 days ago, status: in_transit"*.
+2. **RAG** — look up the cancellation policy in the process-knowledge docs → returns *"orders cannot be cancelled after dispatch, but a return can be initiated within 7 days of delivery"*.
+3. **LLM** — combines both into a real answer: *"Order #12345 was dispatched 2 days ago and can no longer be cancelled. You can return it within 7 days of delivery — would you like me to start that?"*
+
+Neither RAG alone nor the tool alone produces that answer. **Process knowledge says what's allowed; data tables say what's true; the LLM stitches them together.**
 
 ---

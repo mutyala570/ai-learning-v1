@@ -1,0 +1,16 @@
+[project]
+name = "tool_calling"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "langchain>=0.3.25",
+    "langchain-groq>=0.3.2",
+    "langchain-core>=0.3.0",
+    "python-dotenv>=1.0.0",
+    "numpy>=1.26.0",
+    "chromadb>=0.6.0",
+    "sentence-transformers>=3.0.0",
+    "langchain-huggingface>=0.1.0",
+    "gradio>=4.0.0",
+    "pdbpp>=0.10.3",
+]
