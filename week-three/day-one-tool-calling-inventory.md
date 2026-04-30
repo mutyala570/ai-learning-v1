@@ -19,6 +19,11 @@
 2. [**How They Map to RAG vs Tools**](#how-they-map-to-rag-vs-tools)
 3. [**Worked Example — Cancellation**](#worked-example--cancellation)
 
+### Slide 4 — Inventory Case Study (Companion to `inventory.pdf` and `ajaycode/`)
+1. [**The Business Problem**](#the-business-problem)
+2. [**Key Inventory Terms**](#key-inventory-terms)
+3. [**The 8-File Progression**](#the-8-file-progression)
+
 ---
 
 # Slide 1 — Why We Need Tool Calling
@@ -100,5 +105,50 @@ A customer asks *"can I cancel order #12345?"*. A complete answer needs both lay
 3. **LLM** — combines both into a real answer: *"Order #12345 was dispatched 2 days ago and can no longer be cancelled. You can return it within 7 days of delivery — would you like me to start that?"*
 
 Neither RAG alone nor the tool alone produces that answer. **Process knowledge says what's allowed; data tables say what's true; the LLM stitches them together.**
+
+---
+
+# Slide 4 — Inventory Case Study (Companion to `inventory.pdf` and `ajaycode/`)
+
+The case study is a worked example that builds an inventory-planning agent layer by layer across 8 Python files. Every concept in slides 1–3 (tool calling, the agent loop, process knowledge vs data tables) appears in concrete form here. Full architecture and sequence diagrams live in `inventory.pdf`; the `ajaycode/` folder has the runnable code.
+
+## The Business Problem
+
+A retail company stocks products across **Electronics, Pharma, and FMCG**. At any moment they need to know whether a given SKU is at risk of running out before the next shipment arrives. Getting it wrong costs money in both directions — too little stock means lost sales and broken SLAs; too much ties up cash and warehouse space. The agent must read live inventory data, apply domain formulas precisely, and answer plain-English questions like *"Should I reorder SKU-005 today?"* — combining a database, a vector knowledge base, and an LLM.
+
+## Key Inventory Terms
+
+The vocabulary the agent reasons over. Internalise these once and the rest of the case study reads naturally.
+
+| Term | Plain meaning |
+|------|---------------|
+| **SKU** | Unique ID for one product (e.g. `SKU-002` = Paracetamol 500mg) |
+| **Lead Time** | Days between placing a purchase order and receiving the goods |
+| **Avg Daily Demand** | Units sold or consumed per day on average |
+| **Safety Stock** | Buffer stock for surprise demand or late delivery. `Z × √(lead_time) × avg_daily_demand` |
+| **Z-score** | Statistical buffer size — 95% service level → Z=1.65, 99% → Z=2.33 |
+| **Service Level** | Target probability of never stocking out during one cycle |
+| **Reorder Point (ROP)** | Stock level at which you must place a new order. `(avg_daily_demand × lead_time) + safety_stock` |
+| **Desired Stock** | Total stock you should hold right now (same formula as ROP) |
+| **Reorder Quantity** | Units to order. `max(0, desired_stock − current_stock)` |
+| **ABC Analysis** | Ranking SKUs by importance — A-items get tight control, C-items can be loose |
+| **FIFO** | First-In First-Out — critical in Pharma for expiry management |
+
+## The 8-File Progression
+
+Each file adds **one** new capability on top of the previous one. Read the file, run it, look at the matching diagram in the PDF, and the layer is locked in.
+
+| # | File | What it adds | Concept it teaches |
+|---|------|--------------|--------------------|
+| 01 | `inventory_01_sqlite_basics.py` | SQLite tables + JOIN | Structured data layer (data tables) |
+| 02 | `inventory_02_embeddings_basics.py` | Raw `sentence-transformers` + cosine similarity | What an embedding is |
+| 03 | `inventory_03_chromadb_retrieval.py` | ChromaDB with metadata filtering | Vector DB layer |
+| 04 | `inventory_04_llm_chain.py` | First LCEL chain `prompt \| llm \| parser` | Talking to an LLM through a chain |
+| 05 | `inventory_05_rag_chain.py` | RAG chain — bare vs RAG side-by-side | Why retrieval grounds answers |
+| 06 | `inventory_06_tool_calling.py` | `@tool` + `while True` agent loop | Multi-turn tool calling |
+| 07 | `inventory_07_multi_chain.py` | Tool computes → chain 1 explains → chain 2 recommends | Splitting responsibilities across chains |
+| 08 | `inventory_08_full_agent.py` | DB + RAG + tools + ReAct loop + Gradio UI | The complete agent |
+
+By the end of file 08 you have a working agent answering questions like *"Should I reorder SKU-002 today?"* — using the SQLite layer (file 01) for the SKU's data, the ChromaDB knowledge base (file 03) for pharma-specific rules, the safety-stock tool (file 06) for exact arithmetic, and the ReAct loop to orchestrate them all. **That single answer pulls from every layer this case study built up.**
 
 ---
